@@ -11,6 +11,9 @@ type Message = {
 
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false)
+  const [position, setPosition] = useState({ x: 0, y: 0 })
+  const [isDragging, setIsDragging] = useState(false)
+  const dragRef = useRef<{ startX: number, startY: number, currentX: number, currentY: number } | null>(null)
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -73,21 +76,67 @@ export default function Chatbot() {
     }
   }, [messages, isOpen])
 
+  const handlePointerDown = (e: React.PointerEvent) => {
+    e.currentTarget.setPointerCapture(e.pointerId)
+    dragRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      currentX: position.x,
+      currentY: position.y
+    }
+  }
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!dragRef.current) return
+    const dx = e.clientX - dragRef.current.startX
+    const dy = e.clientY - dragRef.current.startY
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+      setIsDragging(true)
+    }
+    setPosition({
+      x: dragRef.current.currentX + dx,
+      y: dragRef.current.currentY + dy
+    })
+  }
+
+  const handlePointerUp = (e: React.PointerEvent) => {
+    dragRef.current = null
+    e.currentTarget.releasePointerCapture(e.pointerId)
+    setTimeout(() => setIsDragging(false), 0)
+  }
+
   return (
-    <>
+    <div 
+      className="fixed bottom-24 md:bottom-8 right-4 md:right-8 z-50 flex flex-col items-end"
+      style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
+    >
       {/* Floating Action Button */}
-      <button
-        onClick={() => setIsOpen(true)}
-        className={`fixed bottom-24 md:bottom-8 right-4 md:right-8 w-14 h-14 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 transition-all z-50 ${isOpen ? 'hidden' : 'flex'}`}
-      >
-        <MessageCircle size={28} />
-      </button>
+      {!isOpen && (
+        <button
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onClick={() => {
+            if (!isDragging) setIsOpen(true)
+          }}
+          style={{ touchAction: 'none' }}
+          className="w-14 h-14 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 transition-all cursor-move"
+        >
+          <MessageCircle size={28} />
+        </button>
+      )}
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-20 md:bottom-8 right-4 md:right-8 w-[calc(100vw-32px)] md:w-96 h-[500px] max-h-[80vh] bg-card glass border border-border rounded-2xl shadow-2xl flex flex-col z-50 overflow-hidden animate-in slide-in-from-bottom-8 duration-300">
+        <div className="w-[calc(100vw-32px)] md:w-96 h-[500px] max-h-[80vh] bg-card glass border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
           {/* Header */}
-          <div className="bg-primary/10 border-b border-border p-4 flex justify-between items-center">
+          <div 
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            style={{ touchAction: 'none' }}
+            className="bg-primary/10 border-b border-border p-4 flex justify-between items-center cursor-move"
+          >
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center">
                 <Bot size={18} />
@@ -174,6 +223,6 @@ export default function Chatbot() {
           </div>
         </div>
       )}
-    </>
+    </div>
   )
 }
