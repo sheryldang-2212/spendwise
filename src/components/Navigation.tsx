@@ -84,6 +84,15 @@ export default function Navigation() {
               </Link>
             )
           })}
+          <button
+            onClick={handleLogout}
+            className="flex flex-col items-center p-2 rounded-xl min-w-[64px] transition-all text-foreground/50 hover:text-danger"
+          >
+            <div className="p-1.5 rounded-full mb-1 hover:bg-danger/10">
+              <LogOut size={24} strokeWidth={2} />
+            </div>
+            <span className="text-[10px] font-medium">Đăng xuất</span>
+          </button>
         </div>
       </nav>
     </>
