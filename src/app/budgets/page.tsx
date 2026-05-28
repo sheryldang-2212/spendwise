@@ -90,12 +90,19 @@ export default function BudgetsPage() {
     }
   }
 
-  const formatCurrency = (val: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val)
+  const formatCurrency = (val: number) => new Intl.NumberFormat('vi-VN').format(val)
+
+  const totalBudget = categories.reduce((sum, cat) => sum + Number(inputs[cat.id] || 0), 0)
 
   return (
     <div className="space-y-6 pb-16">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Cài đặt Ngân sách</h2>
+      </div>
+
+      <div className="glass p-6 rounded-2xl border border-border flex flex-col items-center justify-center bg-primary/5">
+        <p className="text-sm text-foreground/70 mb-1">Tổng ngân sách tháng {month}/{year}</p>
+        <h3 className="text-3xl font-bold text-primary">{formatCurrency(totalBudget)}</h3>
       </div>
 
       <div className="glass p-4 rounded-xl border border-border flex gap-4">
