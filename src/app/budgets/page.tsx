@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { Edit2 } from 'lucide-react'
 
 interface Category {
   id: string
@@ -26,6 +27,7 @@ export default function BudgetsPage() {
 
   const [savingId, setSavingId] = useState<string | null>(null)
   const [successId, setSuccessId] = useState<string | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
   
   // Local state to track inputs
   const [inputs, setInputs] = useState<Record<string, string>>({})
@@ -79,6 +81,7 @@ export default function BudgetsPage() {
         })
       })
       setSuccessId(categoryId)
+      setEditingId(null)
       setTimeout(() => setSuccessId(null), 2000)
     } catch (error) {
       console.error(error)
@@ -129,28 +132,52 @@ export default function BudgetsPage() {
                 <h3 className="font-semibold text-lg">{cat.name}</h3>
               </div>
               
-              <div className="flex items-end gap-2">
-                <div className="flex-1">
-                  <label className="text-xs text-foreground/60 mb-1 block">Số tiền</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={inputs[cat.id] || ''}
-                    onChange={(e) => setInputs(prev => ({ ...prev, [cat.id]: e.target.value }))}
-                    className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
-                    placeholder="0"
-                  />
+              
+              {editingId === cat.id ? (
+                <div className="flex items-end gap-2">
+                  <div className="flex-1">
+                    <label className="text-xs text-foreground/60 mb-1 block">Số tiền mới</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={inputs[cat.id] || ''}
+                      onChange={(e) => setInputs(prev => ({ ...prev, [cat.id]: e.target.value }))}
+                      className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      placeholder="0"
+                      autoFocus
+                    />
+                  </div>
+                  <button
+                    onClick={() => setEditingId(null)}
+                    className="px-4 py-2 bg-foreground/10 hover:bg-foreground/20 text-foreground rounded-lg font-medium transition-colors"
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    onClick={() => handleSaveBudget(cat.id)}
+                    disabled={savingId === cat.id}
+                    className="px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg font-medium transition-colors disabled:opacity-50"
+                  >
+                    {savingId === cat.id ? '...' : 'Lưu'}
+                  </button>
                 </div>
-                <button
-                  onClick={() => handleSaveBudget(cat.id)}
-                  disabled={savingId === cat.id}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 text-white ${
-                    successId === cat.id ? 'bg-green-500' : 'bg-primary hover:bg-primary/90'
-                  }`}
-                >
-                  {savingId === cat.id ? '...' : successId === cat.id ? 'Đã lưu thành công' : 'Lưu'}
-                </button>
-              </div>
+              ) : (
+                <div className="flex items-center justify-between mt-2">
+                  <div>
+                    <p className="text-sm text-foreground/60">Ngân sách hiện tại</p>
+                    <p className="text-xl font-bold text-primary">
+                      {inputs[cat.id] ? new Intl.NumberFormat('vi-VN').format(Number(inputs[cat.id])) : 'Chưa thiết lập'}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setEditingId(cat.id)}
+                    className="flex items-center gap-2 px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg font-medium transition-colors"
+                  >
+                    <Edit2 size={16} />
+                    <span>{successId === cat.id ? 'Đã lưu!' : 'Sửa'}</span>
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>
