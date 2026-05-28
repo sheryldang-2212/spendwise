@@ -42,6 +42,20 @@ export async function GET(req: Request) {
       _sum: { amount: true }
     })
 
+    // Lấy tổng chi tiêu trong năm
+    const startOfYear = new Date(Number(year), 0, 1)
+    const endOfYear = new Date(Number(year), 11, 31, 23, 59, 59, 999)
+    const yearExpenses = await prisma.expense.aggregate({
+      where: {
+        user_id: userId,
+        expense_date: {
+          gte: startOfYear,
+          lte: endOfYear,
+        }
+      },
+      _sum: { amount: true }
+    })
+
     // Lấy tổng ngân sách trong tháng
     const monthBudgets = await prisma.budget.aggregate({
       where: {
@@ -54,12 +68,14 @@ export async function GET(req: Request) {
 
     const totalToday = todayExpenses._sum.amount || 0
     const totalMonth = monthExpenses._sum.amount || 0
+    const totalYear = yearExpenses._sum.amount || 0
     const totalBudget = monthBudgets._sum.amount || 0
     const budgetPercentage = totalBudget > 0 ? Math.round((totalMonth / totalBudget) * 100) : 0
 
     return NextResponse.json({
       totalToday,
       totalMonth,
+      totalYear,
       totalBudget,
       budgetPercentage
     })

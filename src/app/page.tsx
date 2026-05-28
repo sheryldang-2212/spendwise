@@ -6,6 +6,7 @@ import { Wallet, TrendingUp, AlertCircle, TrendingDown } from 'lucide-react'
 interface DashboardData {
   totalToday: number
   totalMonth: number
+  totalYear: number
   totalBudget: number
   budgetPercentage: number
 }
@@ -28,7 +29,7 @@ export default function Dashboard() {
     return <div className="flex justify-center items-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
   }
 
-  const { totalToday = 0, totalMonth = 0, totalBudget = 0, budgetPercentage = 0 } = data || {}
+  const { totalToday = 0, totalMonth = 0, totalYear = 0, totalBudget = 0, budgetPercentage = 0 } = data || {}
 
   let progressColor = 'bg-primary'
   let alertMessage = null
@@ -56,7 +57,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Card Chi tiêu hôm nay */}
         <div className="glass p-6 rounded-2xl border border-border shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
           <div className="p-4 bg-primary/10 rounded-full text-primary">
@@ -64,7 +65,7 @@ export default function Dashboard() {
           </div>
           <div>
             <p className="text-foreground/60 text-sm font-medium mb-1">Đã chi hôm nay</p>
-            <p className="text-3xl font-bold">{formatCurrency(totalToday)}</p>
+            <p className="text-2xl font-bold">{formatCurrency(totalToday)}</p>
           </div>
         </div>
 
@@ -75,7 +76,18 @@ export default function Dashboard() {
           </div>
           <div>
             <p className="text-foreground/60 text-sm font-medium mb-1">Đã chi tháng này</p>
-            <p className="text-3xl font-bold">{formatCurrency(totalMonth)}</p>
+            <p className="text-2xl font-bold">{formatCurrency(totalMonth)}</p>
+          </div>
+        </div>
+
+        {/* Card Chi tiêu năm */}
+        <div className="glass p-6 rounded-2xl border border-border shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
+          <div className="p-4 bg-primary/10 rounded-full text-primary">
+            <TrendingUp size={28} />
+          </div>
+          <div>
+            <p className="text-foreground/60 text-sm font-medium mb-1">Đã chi năm nay</p>
+            <p className="text-2xl font-bold">{formatCurrency(totalYear)}</p>
           </div>
         </div>
       </div>
