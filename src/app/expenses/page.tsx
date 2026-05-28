@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Plus, X, Filter } from 'lucide-react'
+import { Plus, X, Filter, Edit2, Trash2 } from 'lucide-react'
 
 interface Expense {
   id: string
@@ -33,6 +33,7 @@ export default function ExpensesPage() {
 
   // Modal states
   const [showModal, setShowModal] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [amount, setAmount] = useState('')
   const [categoryId, setCategoryId] = useState('')
   const [note, setNote] = useState('')
@@ -72,8 +73,11 @@ export default function ExpensesPage() {
     setSubmitting(true)
 
     try {
-      const res = await fetch('/api/expenses', {
-        method: 'POST',
+      const url = editingId ? `/api/expenses/${editingId}` : '/api/expenses'
+      const method = editingId ? 'PUT' : 'POST'
+      
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           amount: Number(amount),
@@ -84,15 +88,11 @@ export default function ExpensesPage() {
       })
 
       if (res.ok) {
-        setShowModal(false)
-        setAmount('')
-        setCategoryId('')
-        setNote('')
-        setExpenseDate(new Date().toISOString().split('T')[0])
+        closeModal()
         fetchExpenses()
       } else {
         const data = await res.json()
-        setError(data.error || 'Lỗi khi thêm chi tiêu')
+        setError(data.error || 'Lỗi khi lưu chi tiêu')
       }
     } catch (err) {
       setError('Lỗi kết nối')
@@ -101,7 +101,41 @@ export default function ExpensesPage() {
     }
   }
 
-  const formatCurrency = (val: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val)
+  const handleDelete = async (id: string) => {
+    if (!confirm('Bạn có chắc chắn muốn xóa khoản chi này?')) return
+    
+    try {
+      const res = await fetch(`/api/expenses/${id}`, { method: 'DELETE' })
+      if (res.ok) {
+        fetchExpenses()
+      } else {
+        alert('Lỗi khi xóa chi tiêu')
+      }
+    } catch (err) {
+      alert('Lỗi kết nối')
+    }
+  }
+
+  const openEditModal = (expense: Expense) => {
+    setEditingId(expense.id)
+    setAmount(expense.amount.toString())
+    setCategoryId(expense.category.id)
+    setNote(expense.note)
+    setExpenseDate(expense.expense_date.split('T')[0])
+    setShowModal(true)
+  }
+
+  const closeModal = () => {
+    setShowModal(false)
+    setEditingId(null)
+    setAmount('')
+    setCategoryId('')
+    setNote('')
+    setExpenseDate(new Date().toISOString().split('T')[0])
+    setError('')
+  }
+
+  const formatCurrency = (val: number) => new Intl.NumberFormat('vi-VN').format(val)
   const formatDate = (dateString: string) => new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(dateString))
 
   return (
@@ -174,8 +208,18 @@ export default function ExpensesPage() {
                   </div>
                 </div>
               </div>
-              <div className="font-bold text-danger">
-                -{formatCurrency(expense.amount)}
+              <div className="flex items-center gap-4">
+                <div className="font-bold text-danger">
+                  -{formatCurrency(expense.amount)}
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={() => openEditModal(expense)} className="p-2 text-foreground/50 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors">
+                    <Edit2 size={18} />
+                  </button>
+                  <button onClick={() => handleDelete(expense.id)} className="p-2 text-foreground/50 hover:text-danger hover:bg-danger/10 rounded-lg transition-colors">
+                    <Trash2 size={18} />
+                  </button>
+                </div>
               </div>
             </div>
           ))}
@@ -195,8 +239,8 @@ export default function ExpensesPage() {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end md:items-center justify-center p-4">
           <div className="bg-card w-full max-w-md rounded-2xl md:rounded-3xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-200">
             <div className="px-6 py-4 border-b border-border flex justify-between items-center">
-              <h3 className="text-xl font-bold">Thêm chi tiêu</h3>
-              <button onClick={() => setShowModal(false)} className="text-foreground/50 hover:text-foreground p-2 rounded-full hover:bg-foreground/5">
+              <h3 className="text-xl font-bold">{editingId ? 'Cập nhật chi tiêu' : 'Thêm chi tiêu'}</h3>
+              <button onClick={closeModal} className="text-foreground/50 hover:text-foreground p-2 rounded-full hover:bg-foreground/5">
                 <X size={20} />
               </button>
             </div>
@@ -213,10 +257,9 @@ export default function ExpensesPage() {
                     min="1"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
-                    className="w-full pl-4 pr-12 py-3 text-lg font-semibold rounded-xl border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    className="w-full px-4 py-3 text-lg font-semibold rounded-xl border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
                     placeholder="0"
                   />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-foreground/50 font-medium">VND</span>
                 </div>
               </div>
 
@@ -270,7 +313,7 @@ export default function ExpensesPage() {
                 disabled={submitting || !amount || !categoryId}
                 className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3.5 rounded-xl mt-4 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {submitting ? 'Đang lưu...' : 'Lưu chi tiêu'}
+                {submitting ? 'Đang lưu...' : editingId ? 'Cập nhật chi tiêu' : 'Lưu chi tiêu'}
               </button>
             </form>
           </div>

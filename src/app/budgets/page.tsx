@@ -25,6 +25,7 @@ export default function BudgetsPage() {
   const [year, setYear] = useState(new Date().getFullYear())
 
   const [savingId, setSavingId] = useState<string | null>(null)
+  const [successId, setSuccessId] = useState<string | null>(null)
   
   // Local state to track inputs
   const [inputs, setInputs] = useState<Record<string, string>>({})
@@ -77,7 +78,8 @@ export default function BudgetsPage() {
           year,
         })
       })
-      // Optionally show a toast here
+      setSuccessId(categoryId)
+      setTimeout(() => setSuccessId(null), 2000)
     } catch (error) {
       console.error(error)
     } finally {
@@ -129,7 +131,7 @@ export default function BudgetsPage() {
               
               <div className="flex items-end gap-2">
                 <div className="flex-1">
-                  <label className="text-xs text-foreground/60 mb-1 block">Số tiền (VND)</label>
+                  <label className="text-xs text-foreground/60 mb-1 block">Số tiền</label>
                   <input
                     type="number"
                     min="0"
@@ -142,9 +144,11 @@ export default function BudgetsPage() {
                 <button
                   onClick={() => handleSaveBudget(cat.id)}
                   disabled={savingId === cat.id}
-                  className="px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg font-medium transition-colors disabled:opacity-50"
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 text-white ${
+                    successId === cat.id ? 'bg-green-500' : 'bg-primary hover:bg-primary/90'
+                  }`}
                 >
-                  {savingId === cat.id ? '...' : 'Lưu'}
+                  {savingId === cat.id ? '...' : successId === cat.id ? 'Đã lưu thành công' : 'Lưu'}
                 </button>
               </div>
             </div>
