@@ -102,6 +102,39 @@ export default function ReportsPage() {
         <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
       ) : (
         <div className="space-y-6">
+          {/* Summary Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="glass p-4 rounded-xl border border-border">
+              <p className="text-sm text-foreground/70 mb-1">Tổng Ngân Sách</p>
+              <h3 className="text-xl lg:text-2xl font-bold text-primary">
+                {formatCurrency(budgets.reduce((sum, b) => sum + b.amount, 0))}
+              </h3>
+            </div>
+            <div className="glass p-4 rounded-xl border border-border">
+              <p className="text-sm text-foreground/70 mb-1">Tổng Đã Chi</p>
+              <h3 className="text-xl lg:text-2xl font-bold text-danger">
+                {formatCurrency(expenses.reduce((sum, e) => sum + e.amount, 0))}
+              </h3>
+            </div>
+            <div className="glass p-4 rounded-xl border border-border col-span-2 md:col-span-1">
+              <p className="text-sm text-foreground/70 mb-1">Tình trạng</p>
+              {(() => {
+                const totalBudget = budgets.reduce((sum, b) => sum + b.amount, 0)
+                const totalExpense = expenses.reduce((sum, e) => sum + e.amount, 0)
+                const diff = totalBudget - totalExpense
+                
+                if (totalBudget === 0) return <h3 className="text-xl lg:text-2xl font-bold text-foreground/50">Chưa thiết lập</h3>
+                
+                return diff < 0 ? (
+                  <h3 className="text-xl lg:text-2xl font-bold text-danger">Vượt chi: {formatCurrency(Math.abs(diff))}</h3>
+                ) : (
+                  <h3 className="text-xl lg:text-2xl font-bold text-green-500">Còn lại: {formatCurrency(diff)}</h3>
+                )
+              })()}
+            </div>
+          </div>
+
+          {/* Table */}
           <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
