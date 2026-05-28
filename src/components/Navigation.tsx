@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { Home, PieChart, Wallet, Settings, LogOut } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import Chatbot from './Chatbot'
 
 export default function Navigation() {
   const pathname = usePathname()
@@ -95,6 +96,9 @@ export default function Navigation() {
           </button>
         </div>
       </nav>
+
+      {/* Global Chatbot */}
+      <Chatbot />
     </>
   )
 }
