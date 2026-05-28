@@ -256,6 +256,7 @@ export default function Chatbot() {
               </button>
             </form>
           </div>
+          </div>
         </div>
       )}
     </>
