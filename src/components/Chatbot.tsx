@@ -11,9 +11,12 @@ type Message = {
 
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false)
-  const [position, setPosition] = useState({ x: 0, y: 0 })
+  const [buttonPosition, setButtonPosition] = useState({ x: 0, y: 0 })
+  const [windowPosition, setWindowPosition] = useState({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
-  const dragRef = useRef<{ startX: number, startY: number, currentX: number, currentY: number } | null>(null)
+  
+  const buttonDragRef = useRef<{ startX: number, startY: number, currentX: number, currentY: number } | null>(null)
+  const windowDragRef = useRef<{ startX: number, startY: number, currentX: number, currentY: number } | null>(null)
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -76,67 +79,99 @@ export default function Chatbot() {
     }
   }, [messages, isOpen])
 
-  const handlePointerDown = (e: React.PointerEvent) => {
+  const handleButtonPointerDown = (e: React.PointerEvent) => {
     e.currentTarget.setPointerCapture(e.pointerId)
-    dragRef.current = {
+    buttonDragRef.current = {
       startX: e.clientX,
       startY: e.clientY,
-      currentX: position.x,
-      currentY: position.y
+      currentX: buttonPosition.x,
+      currentY: buttonPosition.y
     }
   }
 
-  const handlePointerMove = (e: React.PointerEvent) => {
-    if (!dragRef.current) return
-    const dx = e.clientX - dragRef.current.startX
-    const dy = e.clientY - dragRef.current.startY
+  const handleButtonPointerMove = (e: React.PointerEvent) => {
+    if (!buttonDragRef.current) return
+    const dx = e.clientX - buttonDragRef.current.startX
+    const dy = e.clientY - buttonDragRef.current.startY
     if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
       setIsDragging(true)
     }
-    setPosition({
-      x: dragRef.current.currentX + dx,
-      y: dragRef.current.currentY + dy
+    setButtonPosition({
+      x: buttonDragRef.current.currentX + dx,
+      y: buttonDragRef.current.currentY + dy
     })
   }
 
-  const handlePointerUp = (e: React.PointerEvent) => {
-    dragRef.current = null
+  const handleButtonPointerUp = (e: React.PointerEvent) => {
+    buttonDragRef.current = null
     e.currentTarget.releasePointerCapture(e.pointerId)
     setTimeout(() => setIsDragging(false), 0)
   }
 
+  const handleWindowPointerDown = (e: React.PointerEvent) => {
+    e.currentTarget.setPointerCapture(e.pointerId)
+    windowDragRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      currentX: windowPosition.x,
+      currentY: windowPosition.y
+    }
+  }
+
+  const handleWindowPointerMove = (e: React.PointerEvent) => {
+    if (!windowDragRef.current) return
+    const dx = e.clientX - windowDragRef.current.startX
+    const dy = e.clientY - windowDragRef.current.startY
+    setWindowPosition({
+      x: windowDragRef.current.currentX + dx,
+      y: windowDragRef.current.currentY + dy
+    })
+  }
+
+  const handleWindowPointerUp = (e: React.PointerEvent) => {
+    windowDragRef.current = null
+    e.currentTarget.releasePointerCapture(e.pointerId)
+  }
+
+  const openChat = () => {
+    if (!isDragging) {
+      setWindowPosition({ x: 0, y: 0 })
+      setIsOpen(true)
+    }
+  }
+
   return (
-    <div 
-      className="fixed bottom-24 md:bottom-8 right-4 md:right-8 z-50 flex flex-col items-end"
-      style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
-    >
+    <>
       {/* Floating Action Button */}
       {!isOpen && (
         <button
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
-          onClick={() => {
-            if (!isDragging) setIsOpen(true)
-          }}
-          style={{ touchAction: 'none' }}
-          className="w-14 h-14 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 transition-all cursor-move"
+          onPointerDown={handleButtonPointerDown}
+          onPointerMove={handleButtonPointerMove}
+          onPointerUp={handleButtonPointerUp}
+          onClick={openChat}
+          style={{ transform: `translate(${buttonPosition.x}px, ${buttonPosition.y}px)`, touchAction: 'none' }}
+          className="fixed bottom-24 md:bottom-8 right-4 md:right-8 w-14 h-14 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 transition-transform z-50 cursor-move"
         >
           <MessageCircle size={28} />
         </button>
       )}
 
-      {/* Chat Window */}
+      {/* Chat Window Wrapper */}
       {isOpen && (
-        <div className="w-[calc(100vw-32px)] md:w-96 h-[500px] max-h-[80vh] bg-card glass border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
-          {/* Header */}
+        <div className="fixed inset-0 pointer-events-none z-50 flex items-center justify-center p-4">
+          {/* Chat Window */}
           <div 
-            onPointerDown={handlePointerDown}
-            onPointerMove={handlePointerMove}
-            onPointerUp={handlePointerUp}
-            style={{ touchAction: 'none' }}
-            className="bg-primary/10 border-b border-border p-4 flex justify-between items-center cursor-move"
+            className="pointer-events-auto w-full max-w-sm h-[500px] max-h-[80vh] bg-card glass border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+            style={{ transform: `translate(${windowPosition.x}px, ${windowPosition.y}px)` }}
           >
+            {/* Header */}
+            <div 
+              onPointerDown={handleWindowPointerDown}
+              onPointerMove={handleWindowPointerMove}
+              onPointerUp={handleWindowPointerUp}
+              style={{ touchAction: 'none' }}
+              className="bg-primary/10 border-b border-border p-4 flex justify-between items-center cursor-move"
+            >
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center">
                 <Bot size={18} />
@@ -223,6 +258,6 @@ export default function Chatbot() {
           </div>
         </div>
       )}
-    </div>
+    </>
   )
 }
