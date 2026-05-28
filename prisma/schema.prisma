@@ -7,13 +7,15 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(uuid())
-  email         String    @unique
-  password_hash String
-  name          String?
-  created_at    DateTime  @default(now())
-  expenses      Expense[]
-  budgets       Budget[]
+  id               String    @id @default(uuid())
+  email            String    @unique
+  password_hash    String
+  name             String
+  created_at       DateTime  @default(now())
+  securityQuestion String?
+  securityAnswer   String?
+  expenses         Expense[]
+  budgets          Budget[]
 }
 
 model Category {

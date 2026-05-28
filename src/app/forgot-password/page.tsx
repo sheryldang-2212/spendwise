@@ -4,25 +4,26 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
-export default function RegisterPage() {
+export default function ForgotPasswordPage() {
   const router = useRouter()
-  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
   const [securityQuestion, setSecurityQuestion] = useState('Tên vật nuôi đầu tiên của bạn là gì?')
   const [securityAnswer, setSecurityAnswer] = useState('')
+  const [newPassword, setNewPassword] = useState('')
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setSuccess('')
 
-    if (password.length < 8) {
-      setError('Mật khẩu phải có ít nhất 8 ký tự')
+    if (newPassword.length < 8) {
+      setError('Mật khẩu mới phải có ít nhất 8 ký tự')
       return
     }
-    
+
     if (!securityAnswer.trim()) {
       setError('Vui lòng trả lời câu hỏi bảo mật')
       return
@@ -31,18 +32,21 @@ export default function RegisterPage() {
     setLoading(true)
 
     try {
-      const res = await fetch('/api/auth/register', {
+      const res = await fetch('/api/auth/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password, securityQuestion, securityAnswer }),
+        body: JSON.stringify({ email, securityQuestion, securityAnswer, newPassword }),
       })
 
+      const data = await res.json()
+
       if (res.ok) {
-        router.push('/')
-        router.refresh()
+        setSuccess('Đổi mật khẩu thành công! Bạn có thể đăng nhập bằng mật khẩu mới.')
+        setTimeout(() => {
+          router.push('/login')
+        }, 2000)
       } else {
-        const data = await res.json()
-        setError(data.error || 'Đăng ký thất bại')
+        setError(data.error || 'Có lỗi xảy ra')
       }
     } catch (err) {
       setError('Lỗi kết nối')
@@ -56,7 +60,7 @@ export default function RegisterPage() {
       <div className="w-full max-w-md p-8 rounded-2xl glass shadow-xl border border-border">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-primary mb-2">SpendWise</h1>
-          <p className="text-foreground/60">Tạo tài khoản mới</p>
+          <p className="text-foreground/60">Khôi phục mật khẩu</p>
         </div>
 
         {error && (
@@ -64,19 +68,14 @@ export default function RegisterPage() {
             {error}
           </div>
         )}
+        
+        {success && (
+          <div className="bg-primary/10 text-primary p-3 rounded-lg mb-6 text-sm text-center">
+            {success}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">Tên hiển thị</label>
-            <input
-              type="text"
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-border bg-card focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-              placeholder="Nguyễn Văn A"
-            />
-          </div>
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">Email</label>
             <input
@@ -89,19 +88,7 @@ export default function RegisterPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-foreground mb-2">Mật khẩu</label>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-border bg-card focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-              placeholder="••••••••"
-            />
-            <p className="text-xs text-foreground/50 mt-2">Tối thiểu 8 ký tự</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">Câu hỏi bảo mật (Dùng để lấy lại mật khẩu)</label>
+            <label className="block text-sm font-medium text-foreground mb-2">Câu hỏi bảo mật</label>
             <select
               value={securityQuestion}
               onChange={(e) => setSecurityQuestion(e.target.value)}
@@ -120,17 +107,28 @@ export default function RegisterPage() {
               placeholder="Câu trả lời của bạn"
             />
           </div>
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-2">Mật khẩu mới</label>
+            <input
+              type="password"
+              required
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border border-border bg-card focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+              placeholder="••••••••"
+            />
+          </div>
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !!success}
             className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 px-4 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Đang xử lý...' : 'Đăng ký'}
+            {loading ? 'Đang xử lý...' : 'Đổi mật khẩu'}
           </button>
         </form>
 
         <p className="mt-6 text-center text-sm text-foreground/60">
-          Đã có tài khoản?{' '}
+          Nhớ mật khẩu rồi?{' '}
           <Link href="/login" className="text-primary hover:underline font-medium">
             Đăng nhập
           </Link>
